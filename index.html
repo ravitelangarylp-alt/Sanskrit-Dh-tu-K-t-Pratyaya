@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sanskrit Dhātu & Kṛt Pratyaya — Quiz</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --navy:#1A1A2E;--navy2:#16213E;--card:#0F3460;
+    --gold:#D4A82A;--gold-light:#F5EDD3;--gold-pale:#FFF8E7;
+    --white:#FFFFFF;--off:#F7F3ED;--muted:#8B9BA8;
+    --green:#0F6E56;--green-bg:#E1F5EE;
+    --red:#993C1D;--red-bg:#FAECE7;
+    --blue:#185FA5;--blue-bg:#E6F1FB;
+    --border:#D0C8BE;--rowalt:#F0EBE1;
+    --radius:10px;
+  }
+  body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--off);color:#1a1a1a;line-height:1.6}
+
+  /* HEADER */
+  header{background:var(--navy);padding:2rem 1.5rem 1.5rem;text-align:center;border-bottom:4px solid var(--gold)}
+  header h1{font-family:Georgia,serif;font-size:2rem;color:var(--white);font-weight:600;letter-spacing:.02em}
+  header p{color:var(--muted);font-size:.9rem;margin-top:.4rem;letter-spacing:.04em}
+  .header-pills{display:flex;justify-content:center;gap:.5rem;flex-wrap:wrap;margin-top:1rem}
+  .pill{background:var(--card);color:var(--gold);border:1px solid var(--gold);border-radius:20px;font-size:.75rem;padding:.25rem .75rem}
+
+  /* STUDENT FORM */
+  #student-form{background:var(--white);max-width:560px;margin:2rem auto;border-radius:var(--radius);border:1px solid var(--border);padding:2rem;box-shadow:0 2px 12px rgba(0,0,0,.07)}
+  #student-form h2{font-family:Georgia,serif;font-size:1.3rem;color:var(--navy);margin-bottom:1rem;text-align:center}
+  .form-row{margin-bottom:1rem}
+  .form-row label{display:block;font-size:.85rem;font-weight:600;color:#444;margin-bottom:.35rem}
+  .form-row input{width:100%;padding:.55rem .85rem;border:1px solid var(--border);border-radius:6px;font-size:.95rem;outline:none;transition:border .15s}
+  .form-row input:focus{border-color:var(--gold)}
+  .start-btn{width:100%;padding:.75rem;background:var(--navy);color:var(--gold);border:none;border-radius:6px;font-size:1rem;font-weight:600;cursor:pointer;letter-spacing:.04em;transition:background .15s}
+  .start-btn:hover{background:var(--navy2)}
+
+  /* PROGRESS BAR */
+  #quiz-progress{display:none;background:var(--navy);padding:.75rem 1.5rem;position:sticky;top:0;z-index:100;border-bottom:2px solid var(--gold)}
+  .progress-inner{max-width:800px;margin:0 auto;display:flex;align-items:center;gap:1rem}
+  .progress-label{color:var(--muted);font-size:.8rem;white-space:nowrap}
+  .progress-bar-wrap{flex:1;height:6px;background:rgba(255,255,255,.15);border-radius:3px;overflow:hidden}
+  .progress-bar-fill{height:100%;background:var(--gold);border-radius:3px;transition:width .3s}
+  .progress-count{color:var(--white);font-size:.8rem;font-weight:600;white-space:nowrap}
+  .timer-badge{background:var(--card);color:var(--gold);border:1px solid var(--gold);border-radius:20px;font-size:.8rem;padding:.2rem .7rem;white-space:nowrap}
+
+  /* QUIZ CONTAINER */
+  #quiz-container{display:none;max-width:800px;margin:2rem auto;padding:0 1rem 4rem}
+
+  /* SECTION DIVIDER */
+  .section-divider{background:var(--navy);color:var(--gold);font-family:Georgia,serif;font-size:1rem;font-weight:600;padding:.6rem 1.2rem;border-radius:var(--radius);margin:2rem 0 1rem;border-left:4px solid var(--gold)}
+
+  /* QUESTION CARD */
+  .q-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem;margin-bottom:1rem;transition:border .2s}
+  .q-card.answered{border-color:var(--gold-light)}
+  .q-num{font-size:.75rem;font-weight:700;color:var(--gold);letter-spacing:.06em;text-transform:uppercase;margin-bottom:.5rem}
+  .q-text{font-size:1rem;font-weight:600;color:#1a1a1a;margin-bottom:1rem;line-height:1.5}
+  .q-text .iast{font-style:italic;color:var(--blue)}
+  .options{display:grid;gap:.5rem}
+  .opt-label{display:flex;align-items:center;gap:.75rem;padding:.6rem .9rem;border:1px solid var(--border);border-radius:7px;cursor:pointer;transition:background .15s,border .15s;font-size:.92rem}
+  .opt-label:hover{background:var(--gold-pale);border-color:var(--gold)}
+  .opt-label input{accent-color:var(--gold);width:16px;height:16px;flex-shrink:0}
+  .opt-label.selected{background:var(--gold-pale);border-color:var(--gold)}
+  .opt-label.correct{background:var(--green-bg);border-color:var(--green);color:var(--green)}
+  .opt-label.wrong{background:var(--red-bg);border-color:var(--red);color:var(--red)}
+
+  /* SUBMIT */
+  #submit-wrap{text-align:center;margin:2rem 0}
+  #submit-btn{background:var(--navy);color:var(--gold);border:2px solid var(--gold);border-radius:8px;padding:.85rem 3rem;font-size:1rem;font-weight:700;cursor:pointer;letter-spacing:.05em;transition:background .15s}
+  #submit-btn:hover{background:#0d0d1f}
+
+  /* RESULTS */
+  #results{display:none;max-width:700px;margin:2rem auto;padding:0 1rem 4rem}
+  .result-header{background:var(--navy);border-radius:var(--radius);padding:2rem;text-align:center;border:2px solid var(--gold);margin-bottom:2rem}
+  .result-header h2{font-family:Georgia,serif;font-size:1.6rem;color:var(--white);margin-bottom:.3rem}
+  .result-header .student-name{color:var(--gold);font-size:1.1rem;font-weight:600;margin-bottom:1rem}
+  .score-big{font-size:3.5rem;font-weight:800;color:var(--gold);line-height:1;font-family:Georgia,serif}
+  .score-sub{color:var(--muted);font-size:.9rem;margin-top:.4rem}
+  .grade-badge{display:inline-block;border-radius:20px;padding:.4rem 1.2rem;font-weight:700;font-size:1rem;margin-top:.8rem;letter-spacing:.04em}
+  .grade-A{background:var(--green-bg);color:var(--green);border:1px solid var(--green)}
+  .grade-B{background:var(--blue-bg);color:var(--blue);border:1px solid var(--blue)}
+  .grade-C{background:var(--gold-pale);color:#6B4F00;border:1px solid var(--gold)}
+  .grade-D{background:var(--red-bg);color:var(--red);border:1px solid var(--red)}
+
+  .stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:2rem}
+  .stat-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:1rem;text-align:center}
+  .stat-val{font-size:1.8rem;font-weight:700;color:var(--navy)}
+  .stat-lbl{font-size:.75rem;color:var(--muted);margin-top:.2rem;text-transform:uppercase;letter-spacing:.04em}
+
+  .review-title{font-family:Georgia,serif;font-size:1.2rem;color:var(--navy);margin-bottom:1rem;border-bottom:2px solid var(--gold);padding-bottom:.5rem}
+  .review-item{border:1px solid var(--border);border-radius:8px;padding:1rem;margin-bottom:.75rem;background:var(--white)}
+  .review-item .r-num{font-size:.75rem;color:var(--muted);font-weight:600;margin-bottom:.3rem}
+  .review-item .r-q{font-size:.9rem;font-weight:600;margin-bottom:.5rem;color:#1a1a1a}
+  .review-item .r-correct{font-size:.85rem;color:var(--green);background:var(--green-bg);padding:.3rem .7rem;border-radius:5px;display:inline-block;margin-right:.4rem}
+  .review-item .r-wrong{font-size:.85rem;color:var(--red);background:var(--red-bg);padding:.3rem .7rem;border-radius:5px;display:inline-block}
+
+  .save-section{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem;margin-bottom:2rem;text-align:center}
+  .save-section h3{font-size:1rem;font-weight:600;margin-bottom:.4rem;color:var(--navy)}
+  .save-section p{font-size:.85rem;color:var(--muted);margin-bottom:1rem}
+  .save-btns{display:flex;gap:.75rem;justify-content:center;flex-wrap:wrap}
+  .save-btn{padding:.6rem 1.4rem;border-radius:7px;font-size:.9rem;font-weight:600;cursor:pointer;border:1.5px solid var(--navy);background:transparent;color:var(--navy);transition:background .15s}
+  .save-btn:hover{background:var(--off)}
+  .save-btn.primary{background:var(--navy);color:var(--gold);border-color:var(--navy)}
+  .save-btn.primary:hover{background:var(--navy2)}
+
+  .retry-btn{display:block;margin:0 auto;padding:.75rem 2.5rem;background:var(--gold);color:var(--navy);border:none;border-radius:8px;font-size:1rem;font-weight:700;cursor:pointer;letter-spacing:.04em}
+  .retry-btn:hover{opacity:.9}
+
+  @media(max-width:520px){
+    header h1{font-size:1.4rem}
+    .stats-grid{grid-template-columns:1fr 1fr}
+    .save-btns{flex-direction:column}
+    .save-btn{width:100%}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Sanskrit Dhātu &amp; Kṛt Pratyaya</h1>
+  <p>50-Question Multiple Choice Quiz &nbsp;·&nbsp; Visual Arts Students &nbsp;·&nbsp; London</p>
+  <div class="header-pills">
+    <span class="pill">List 1 — Purifying Roots</span>
+    <span class="pill">List 2 — Ajanta/Halanta</span>
+    <span class="pill">List 3 — Suffix Categories</span>
+    <span class="pill">List 4 — Root Matrix</span>
+    <span class="pill">List 5 — Seṭ / Aniṭ</span>
+  </div>
+</header>
+
+<!-- STUDENT FORM -->
+<div id="student-form">
+  <h2>Enter your name to begin</h2>
+  <div class="form-row">
+    <label for="s-name">Full Name</label>
+    <input type="text" id="s-name" placeholder="e.g. Anna Smith" autocomplete="name">
+  </div>
+  <button class="start-btn" onclick="startQuiz()">Start Quiz</button>
+</div>
+
+<!-- PROGRESS BAR -->
+<div id="quiz-progress">
+  <div class="progress-inner">
+    <span class="progress-label">Progress</span>
+    <div class="progress-bar-wrap"><div class="progress-bar-fill" id="prog-fill" style="width:0%"></div></div>
+    <span class="progress-count" id="prog-count">0 / 50</span>
+    <span class="timer-badge" id="timer-disp">00:00</span>
+  </div>
+</div>
+
+<!-- QUIZ -->
+<div id="quiz-container"></div>
+<div id="submit-wrap" style="display:none">
+  <button id="submit-btn" onclick="submitQuiz()">Submit Quiz</button>
+</div>
+
+<!-- RESULTS -->
+<div id="results"></div>
+
+<script>
+const QUESTIONS = [
+  // ── SECTION 1: PURIFYING THE ROOT (Q1–10) ──────────────────────────
+  {s:"Section 1 — Purifying the Root (Anubandha-vinirmuktaḥ Dhātuḥ)",
+   q:"The raw root <span class='iast'>ḍukṛñ</span> contains three Anubandhas. What is the pure base root after removing all technical markers?",
+   opts:["kṛ","ḍu","kṛñ","ukṛ"], ans:0},
+  {q:"Which of the following is the pure root obtained from <span class='iast'>dṛśir</span>?",
+   opts:["dir","dṛś","śir","dṛśi"], ans:1},
+  {q:"The Anubandha <span class='iast'>ṇ</span> at the start of a root signals what grammatical information to the student?",
+   opts:["The root takes ātmanepada endings","The root causes Vṛddhi of the initial vowel in certain forms","The root is intransitive","The root belongs to the 10th class (curādi)"], ans:1},
+  {q:"From <span class='iast'>likhir</span>, the pure root is <span class='iast'>likh</span> (to write/draw). What is the Anubandha that was removed?",
+   opts:["li","kh","ir","r"], ans:2},
+  {q:"Which raw form yields the pure root <span class='iast'>svap</span> (to sleep)?",
+   opts:["ñiṣvapaj","ṭusvapir","svapir","ḍusvap"], ans:0},
+  {q:"The pure root <span class='iast'>dhā</span> means 'to place / to hold / to compose'. Which raw form is it derived from?",
+   opts:["ḍupacaṣ","ḍudhāñ","ñidhāñ","ṭudhā"], ans:1},
+  {q:"The Anubandha <span class='iast'>ṣ</span> (as in <span class='iast'>labhaṣ</span>) at the END of a root signals what?",
+   opts:["The root takes only parasmaipada","The root is causative by nature","The root takes ātmanepada (reflexive/middle) endings","The root is defective"], ans:2},
+  {q:"After removing all Anubandhas from <span class='iast'>ñiīndhī</span>, what pure root do you get?",
+   opts:["īndh","nī","indh","ñi"], ans:2},
+  {q:"The initial <span class='iast'>ḍu</span> (as in <span class='iast'>ḍukṛñ</span>, <span class='iast'>ḍudāñ</span>) is an Anubandha that signals:",
+   opts:["The root is denominative","The root takes the <i>u</i>-prefix in kṛt forms","The root takes ātmanepada AND ubhayapada","The root belongs to class 8"], ans:2},
+  {q:"Which of the following pure roots means 'to kindle' or 'to illuminate'?",
+   opts:["vep","indh","pac","muc"], ans:1},
+
+  // ── SECTION 2: AJANTA VS HALANTA (Q11–20) ─────────────────────────
+  {s:"Section 2 — Ajanta (Vowel-ending) vs. Halanta (Consonant-ending) Roots",
+   q:"An <b>Ajanta</b> root is defined as one that ends in:",
+   opts:["A consonant","A vowel","A sibilant","An aspirate"], ans:1},
+  {q:"Which of the following is an <b>Ajanta</b> (vowel-ending) root?",
+   opts:["gam","pac","bhū","dṛś"], ans:2},
+  {q:"Which of the following is a <b>Halanta</b> (consonant-ending) root?",
+   opts:["dā","ji","sthā","yuj"], ans:3},
+  {q:"The root <span class='iast'>ci</span> (from <span class='iast'>ciñ</span>) ends in the vowel <span class='iast'>i</span>. What does it mean?",
+   opts:["to see","to collect / arrange / compose","to cook","to conquer"], ans:1},
+  {q:"<span class='iast'>śru</span> is an Ajanta root ending in <span class='iast'>u</span>. What is its meaning, relevant to a photography student?",
+   opts:["to speak","to hear / to listen","to see","to observe light"], ans:1},
+  {q:"The root <span class='iast'>sthā</span> (to stand / to be still) is important for photographers thinking about composition. It is Ajanta ending in:",
+   opts:["a","ā","i","ū"], ans:1},
+  {q:"From the raw root <span class='iast'>ñinīñ</span>, the pure Ajanta root is <span class='iast'>nī</span>. It ends in <span class='iast'>ī</span>. What does it mean?",
+   opts:["to lead / to guide","to see","to sing","to stand"], ans:0},
+  {q:"Which pair shows one Ajanta and one Halanta root correctly?",
+   opts:["pac (Ajanta), bhū (Halanta)","bhū (Ajanta), yuj (Halanta)","sthā (Halanta), gam (Ajanta)","dṛś (Ajanta), kṛ (Halanta)"], ans:1},
+  {q:"The root <span class='iast'>labh</span> (to obtain / capture) is Halanta. It ends in:",
+   opts:["a","bh","l","h"], ans:1},
+  {q:"Which Halanta root means 'to see / to observe / to perceive' — central to all visual art?",
+   opts:["gam","vac","dṛś","likh"], ans:2},
+
+  // ── SECTION 3: SUFFIX CATEGORIES (Q21–30) ─────────────────────────
+  {s:"Section 3 — Suffix Categories (Ajādi vs. Tādādi Pratyayas)",
+   q:"The suffix <b>Anīyar</b> attaches to a root as <span class='iast'>anīya</span>. What meaning does the resulting word carry?",
+   opts:["Past action completed","Ought to be / worthy of (gerundive)","Agent — one who does regularly","Infinitive — in order to"], ans:1},
+  {q:"<span class='iast'>dṛś + anīya → darśanīyam</span>. What does <span class='iast'>darśanīyam</span> mean?",
+   opts:["having been seen","one who sees","worthy of being seen","in order to see"], ans:2},
+  {q:"The suffix <b>Lyuṭ</b> attaches as <span class='iast'>ana</span> and forms a verbal noun. Which example is correct?",
+   opts:["kṛ + ana → karaṇam (the act of creating)","kṛ + ana → kāraka (maker)","kṛ + ana → kartum (to do)","kṛ + ana → kṛta (done)"], ans:0},
+  {q:"The suffix <b>Tumun</b> forms the Sanskrit infinitive and attaches as <span class='iast'>tum</span>. <span class='iast'>dṛś + tum → draṣṭum</span> means:",
+   opts:["having seen","must be seen","to see / in order to see","one who sees"], ans:2},
+  {q:"Which suffix produces an <b>agent noun</b> meaning 'one who does regularly' (e.g., a seer, a creator)?",
+   opts:["Tumun","Kta","Tṛc","Ghañ"], ans:2},
+  {q:"<b>Kta</b> attaches as <span class='iast'>ta</span> and forms the past passive participle. Which is correct?",
+   opts:["likh + ta → likhitum","likh + ta → likhita (written/drawn)","likh + ta → lekhitā","likh + ta → lekhana"], ans:1},
+  {q:"<b>Ktvā</b> attaches as <span class='iast'>tvā</span> and forms an indeclinable gerund meaning 'having done'. Which is correct?",
+   opts:["dṛś + tvā → dṛṣṭvā (having seen)","dṛś + tvā → draṣṭum","dṛś + tvā → darśanīyam","dṛś + tvā → draṣṭā"], ans:0},
+  {q:"Which of the following suffixes is <b>Tādādi</b> (begins with 't')?",
+   opts:["Anīyar","Lyuṭ","Ṇvul","Tavyat"], ans:3},
+  {q:"Which of the following suffixes is <b>Ajādi</b> (begins with a vowel)?",
+   opts:["Tavyat","Tumun","Ktvā","Ṇvul"], ans:3},
+  {q:"<b>Ktavatu</b> attaches as <span class='iast'>tavat</span> and forms the past active participle. <span class='iast'>likh + tavat</span> produces:",
+   opts:["likhitum","likhita","likhitavat (having written/drawn)","lekhana"], ans:2},
+
+  // ── SECTION 4: ROOT ENDING MATRIX (Q31–42) ────────────────────────
+  {s:"Section 4 — Root Ending Matrix (Anīyar, Tavyat, Tumun, Tṛc)",
+   q:"The root <span class='iast'>dā</span> (to give) ends in <span class='iast'>ā</span>. What is the correct Tumun (infinitive) form?",
+   opts:["dānīyam","dātavyam","dātum","dātā"], ans:2},
+  {q:"For <span class='iast'>ā</span>-ending roots, the Tavyat (obligation) form of <span class='iast'>sthā</span> (to stand) is:",
+   opts:["sthānīyam","sthātavyam","sthātum","sthātā"], ans:1},
+  {q:"The root <span class='iast'>kṛ</span> (to create) ends in <span class='iast'>ṛ</span> (Iganta). Guṇa of <span class='iast'>ṛ</span> gives <span class='iast'>ar</span>. The Anīyar form is:",
+   opts:["kṛtanīyam","karaṇīyam","kartavyam","kartā"], ans:1},
+  {q:"For Iganta root <span class='iast'>śru</span> (to hear), Guṇa of <span class='iast'>u</span> gives <span class='iast'>o</span>. The Tumun form is:",
+   opts:["śrotavyam","śravaṇīyam","śrotum","śrotā"], ans:2},
+  {q:"For Iganta root <span class='iast'>nī</span> (to lead/guide), Guṇa of <span class='iast'>ī</span> gives <span class='iast'>e</span>. Which is the Tṛc (agent) form?",
+   opts:["nayanīyam","netavyam","netum","netā"], ans:3},
+  {q:"<span class='iast'>paṭh</span> (to read/study) is Adupadhā (penultimate <span class='iast'>a</span>). Its Tumun form is:",
+   opts:["paṭhanīyam","paṭhitavyam","paṭhitum","paṭhitā"], ans:2},
+  {q:"For Adupadhā root <span class='iast'>gam</span> (to go/move), the Tumun form involves nasal assimilation. Which is correct?",
+   opts:["gamitum","gāmitum","gantum","gamtum"], ans:2},
+  {q:"<span class='iast'>dṛś</span> (to see/observe) is Igupadhā (penultimate <span class='iast'>ṛ</span>). Its Tavyat (must be done) form is:",
+   opts:["darśanīyam","draṣṭavyam","draṣṭum","draṣṭā"], ans:1},
+  {q:"For Igupadhā root <span class='iast'>likh</span> (to write/draw), Guṇa applies. The Anīyar form is:",
+   opts:["lekhanīyam","lekhitavyam","lekhitum","lekhitā"], ans:0},
+  {q:"<span class='iast'>yuj</span> (to join/compose) is Igupadhā. The Tumun form involves Guṇa of <span class='iast'>u</span> → <span class='iast'>o</span>. Which is correct?",
+   opts:["yojanīyam","yoktavyam","yoktum","yoktā"], ans:2},
+  {q:"For 'Other Halanta' root <span class='iast'>bhāṣ</span> (to speak/express/illuminate), the Tṛc agent form is:",
+   opts:["bhāṣaṇīyam","bhāṣitavyam","bhāṣitum","bhāṣitā"], ans:3},
+  {q:"For 'Other Halanta' root <span class='iast'>pūj</span> (to worship/honour), which Anīyar form is correct?",
+   opts:["pūjanīyam","pūjitavyam","pūjitum","pūjitā"], ans:0},
+
+  // ── SECTION 5: SET VS ANIT (Q43–50) ───────────────────────────────
+  {s:"Section 5 — Seṭ vs. Aniṭ Dhātus",
+   q:"A <b>Seṭ</b> root is one that:",
+   opts:["never changes its final vowel","inserts a connecting 'i' before consonant-initial suffixes","drops its final consonant before vowel suffixes","only takes Tādādi suffixes"], ans:1},
+  {q:"The root <span class='iast'>paṭh</span> (to read) is Seṭ. Which Tumun form proves this?",
+   opts:["paṭhitum","paṭhtum","pāṭhum","paṭhatum"], ans:0},
+  {q:"The root <span class='iast'>dṛś</span> (to see) is <b>Aniṭ</b>. Which Tumun form proves this?",
+   opts:["dṛśitum","dṛṣṭitum","draṣṭum","darśitum"], ans:2},
+  {q:"<span class='iast'>bhū</span> (to be/become/exist) is a critical Seṭ exception among Iganta roots. Its Tumun form is:",
+   opts:["bhūtum","bhotum","bhavitum","bhūyitum"], ans:2},
+  {q:"Among <span class='iast'>ā</span>-ending roots, which statement about Seṭ/Aniṭ is correct?",
+   opts:["All ā-ending roots are Seṭ","ā-ending roots are overwhelmingly Aniṭ","ā-ending roots never take Tumun","ā-ending roots all take double suffixes"], ans:1},
+  {q:"The root <span class='iast'>likh</span> (to write/draw/engrave) is Seṭ. Which Tumun form is correct?",
+   opts:["lekhtum","likhitum","lekhatum","līkhtum"], ans:1},
+  {q:"<span class='iast'>kṛ</span> (to do/create) is Aniṭ Iganta. The Tumun form directly joins root + suffix after Guṇa. Which is correct?",
+   opts:["kṛtum","karitum","kartum","kāritum"], ans:2},
+  {q:"The root <span class='iast'>bhāṣ</span> (to speak/illuminate) belongs to the 'Other Halanta' category and is Seṭ because:",
+   opts:["it has a short internal vowel","it has a long vowel ā inside, which typically signals Seṭ","it is a class 1 root","it ends in a sibilant"], ans:1},
+];
+
+let studentInfo = {};
+let userAnswers = Array(50).fill(null);
+let startTime = null;
+let timerInterval = null;
+
+function startQuiz() {
+  const name = document.getElementById('s-name').value.trim();
+  if (!name) { alert('Please enter your full name.'); return; }
+  studentInfo = { name };
+  document.getElementById('student-form').style.display = 'none';
+  document.getElementById('quiz-progress').style.display = 'block';
+  document.getElementById('submit-wrap').style.display = 'block';
+  buildQuiz();
+  startTime = Date.now();
+  timerInterval = setInterval(updateTimer, 1000);
+}
+
+function buildQuiz() {
+  const container = document.getElementById('quiz-container');
+  container.style.display = 'block';
+  let html = '';
+  let qNum = 0;
+  QUESTIONS.forEach((q, i) => {
+    if (q.s) html += `<div class="section-divider">${q.s}</div>`;
+    qNum++;
+    html += `<div class="q-card" id="qc-${i}">
+      <div class="q-num">Question ${qNum} of 50</div>
+      <div class="q-text">${q.q}</div>
+      <div class="options" id="opts-${i}">`;
+    q.opts.forEach((opt, oi) => {
+      html += `<label class="opt-label" id="lbl-${i}-${oi}" onclick="selectAnswer(${i},${oi})">
+        <input type="radio" name="q${i}" value="${oi}"> ${opt}
+      </label>`;
+    });
+    html += `</div></div>`;
+  });
+  container.innerHTML = html;
+}
+
+function selectAnswer(qi, oi) {
+  userAnswers[qi] = oi;
+  document.querySelectorAll(`#opts-${qi} .opt-label`).forEach((l,i) => {
+    l.classList.toggle('selected', i === oi);
+  });
+  document.querySelectorAll(`#opts-${qi} input`).forEach((inp,i) => {
+    inp.checked = (i === oi);
+  });
+  document.getElementById(`qc-${qi}`).classList.add('answered');
+  updateProgress();
+}
+
+function updateProgress() {
+  const answered = userAnswers.filter(a => a !== null).length;
+  const pct = Math.round((answered / 50) * 100);
+  document.getElementById('prog-fill').style.width = pct + '%';
+  document.getElementById('prog-count').textContent = answered + ' / 50';
+}
+
+function updateTimer() {
+  const elapsed = Math.floor((Date.now() - startTime) / 1000);
+  const m = Math.floor(elapsed / 60).toString().padStart(2, '0');
+  const s = (elapsed % 60).toString().padStart(2, '0');
+  document.getElementById('timer-disp').textContent = m + ':' + s;
+}
+
+function submitQuiz() {
+  const unanswered = userAnswers.filter(a => a === null).length;
+  if (unanswered > 0) {
+    if (!confirm(`You have ${unanswered} unanswered question(s). Submit anyway?`)) return;
+  }
+  clearInterval(timerInterval);
+  const elapsed = Math.floor((Date.now() - startTime) / 1000);
+  const m = Math.floor(elapsed / 60).toString().padStart(2,'0');
+  const s = (elapsed % 60).toString().padStart(2,'0');
+  const timeStr = m + ':' + s;
+
+  // Show answers on quiz
+  QUESTIONS.forEach((q, i) => {
+    q.opts.forEach((_, oi) => {
+      const lbl = document.getElementById(`lbl-${i}-${oi}`);
+      if (oi === q.ans) lbl.classList.add('correct');
+      else if (oi === userAnswers[i] && userAnswers[i] !== q.ans) lbl.classList.add('wrong');
+    });
+  });
+
+  let correct = 0;
+  userAnswers.forEach((a, i) => { if (a === QUESTIONS[i].ans) correct++; });
+  const pct = Math.round((correct / 50) * 100);
+  const grade = pct >= 80 ? 'A' : pct >= 65 ? 'B' : pct >= 50 ? 'C' : 'D';
+  const gradeLabel = pct >= 80 ? 'Excellent' : pct >= 65 ? 'Good' : pct >= 50 ? 'Pass' : 'Needs Review';
+
+  showResults(correct, pct, grade, gradeLabel, timeStr);
+  document.getElementById('submit-wrap').style.display = 'none';
+  document.getElementById('quiz-progress').style.display = 'none';
+}
+
+function showResults(correct, pct, grade, gradeLabel, timeStr) {
+  const wrong = 50 - correct - userAnswers.filter(a => a === null).length;
+  const skipped = userAnswers.filter(a => a === null).length;
+
+  // Section breakdown
+  const sections = [
+    {label:'Purifying the Root', range:[0,9]},
+    {label:'Ajanta vs Halanta', range:[10,19]},
+    {label:'Suffix Categories', range:[20,29]},
+    {label:'Root Ending Matrix', range:[30,41]},
+    {label:'Seṭ vs Aniṭ', range:[42,49]},
+  ];
+  let sectionHTML = '';
+  sections.forEach(sec => {
+    let sc = 0, tot = 0;
+    for (let i = sec.range[0]; i <= sec.range[1]; i++) {
+      tot++;
+      if (userAnswers[i] === QUESTIONS[i].ans) sc++;
+    }
+    const sp = Math.round((sc/tot)*100);
+    const col = sp >= 80 ? '#0F6E56' : sp >= 50 ? '#185FA5' : '#993C1D';
+    sectionHTML += `<tr><td style="padding:6px 8px;font-size:.85rem">${sec.label}</td>
+      <td style="padding:6px 8px;font-size:.85rem;text-align:center">${sc}/${tot}</td>
+      <td style="padding:6px 8px"><div style="height:8px;background:#e0e0e0;border-radius:4px;overflow:hidden"><div style="height:100%;width:${sp}%;background:${col};border-radius:4px"></div></div></td>
+      <td style="padding:6px 8px;font-size:.85rem;font-weight:600;color:${col}">${sp}%</td></tr>`;
+  });
+
+  // Wrong answers review
+  let reviewHTML = '';
+  QUESTIONS.forEach((q, i) => {
+    if (userAnswers[i] !== q.ans) {
+      const userAns = userAnswers[i] !== null ? q.opts[userAnswers[i]] : '(not answered)';
+      reviewHTML += `<div class="review-item">
+        <div class="r-num">Q${i+1}</div>
+        <div class="r-q">${q.q.replace(/<[^>]+>/g,'')}</div>
+        <span class="r-correct">Correct: ${q.opts[q.ans]}</span>
+        <span class="r-wrong">Your answer: ${userAns}</span>
+      </div>`;
+    }
+  });
+
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('en-GB',{day:'2-digit',month:'long',year:'numeric'});
+
+  document.getElementById('results').style.display = 'block';
+  document.getElementById('results').innerHTML = `
+    <div class="result-header">
+      <h2>Quiz Complete</h2>
+      <div class="student-name">${studentInfo.name}</div>
+      <div class="score-big">${pct}%</div>
+      <div class="score-sub">${correct} correct out of 50 &nbsp;·&nbsp; Time: ${timeStr}</div>
+      <span class="grade-badge grade-${grade}">${grade} — ${gradeLabel}</span>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-val" style="color:#0F6E56">${correct}</div><div class="stat-lbl">Correct</div></div>
+      <div class="stat-card"><div class="stat-val" style="color:#993C1D">${wrong}</div><div class="stat-lbl">Wrong</div></div>
+      <div class="stat-card"><div class="stat-val" style="color:#888">${skipped}</div><div class="stat-lbl">Skipped</div></div>
+    </div>
+
+    <div class="save-section">
+      <h3>Save your results</h3>
+      <p>Choose how to submit your score to your teacher:</p>
+      <div class="save-btns">
+        <button class="save-btn primary" onclick="submitToGoogleForm(${pct},'${grade}','${gradeLabel}','${timeStr}','${dateStr}',${correct},${wrong},${skipped})">Submit to Teacher (Google Form)</button>
+        <button class="save-btn" onclick="downloadResult(${pct},'${grade}','${gradeLabel}','${timeStr}','${dateStr}',${correct},${wrong},${skipped})">Download Score Card</button>
+        <button class="save-btn" onclick="copyResult(${pct},'${grade}','${gradeLabel}','${timeStr}','${dateStr}',${correct})">Copy Result Text</button>
+        <button class="save-btn" onclick="window.print()">Print</button>
+      </div>
+    </div>
+
+    <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;margin-bottom:1.5rem">
+      <div class="review-title">Section Breakdown</div>
+      <table style="width:100%;border-collapse:collapse">${sectionHTML}</table>
+    </div>
+
+    ${reviewHTML ? `<div class="review-title" style="margin-bottom:.75rem">Questions to Review (${50-correct} items)</div>${reviewHTML}` : '<div style="background:var(--green-bg);color:var(--green);padding:1rem;border-radius:8px;text-align:center;font-weight:600;margin-bottom:1.5rem">Perfect score! All 50 correct.</div>'}
+
+    <button class="retry-btn" onclick="location.reload()">Retry Quiz</button>
+  `;
+
+  document.getElementById('results').scrollIntoView({behavior:'smooth'});
+}
+
+function downloadResult(pct, grade, gradeLabel, timeStr, dateStr, correct, wrong, skipped) {
+  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Score Card — ${studentInfo.name}</title>
+  <style>body{font-family:Georgia,serif;max-width:600px;margin:2rem auto;padding:2rem;border:2px solid #D4A82A;border-radius:12px}
+  h1{color:#1A1A2E;font-size:1.5rem;margin-bottom:.3rem}
+  .score{font-size:3rem;font-weight:800;color:#1A1A2E}.muted{color:#888;font-size:.85rem}
+  table{width:100%;border-collapse:collapse;margin-top:1rem}td{padding:6px 10px;border-bottom:1px solid #eee;font-size:.9rem}
+  .footer{margin-top:1.5rem;font-size:.8rem;color:#aaa;text-align:center;border-top:1px solid #eee;padding-top:.75rem}</style></head>
+  <body>
+  <h1>Sanskrit Dhātu &amp; Kṛt Pratyaya — Score Card</h1>
+  <p class="muted">Visual Arts Students, London &nbsp;·&nbsp; ${dateStr}</p>
+  <div class="score">${pct}%</div>
+  <p><b>${grade} — ${gradeLabel}</b> &nbsp;·&nbsp; ${correct}/50 correct &nbsp;·&nbsp; Time: ${timeStr}</p>
+  <table>
+    <tr><td><b>Name</b></td><td>${studentInfo.name}</td></tr>
+    <tr><td><b>Correct</b></td><td style="color:#0F6E56">${correct}</td></tr>
+    <tr><td><b>Wrong</b></td><td style="color:#993C1D">${wrong}</td></tr>
+    <tr><td><b>Skipped</b></td><td style="color:#888">${skipped}</td></tr>
+    <tr><td><b>Score</b></td><td>${pct}%</td></tr>
+    <tr><td><b>Grade</b></td><td>${grade} — ${gradeLabel}</td></tr>
+    <tr><td><b>Time Taken</b></td><td>${timeStr}</td></tr>
+  </table>
+  <div class="footer">Sanskrit Dhātu &amp; Kṛt Pratyaya Quiz &nbsp;·&nbsp; Generated ${dateStr}</div>
+  </body></html>`;
+  const blob = new Blob([html], {type:'text/html'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `scorecard_${studentInfo.name.replace(/\s+/g,'_')}.html`;
+  a.click();
+}
+
+function copyResult(pct, grade, gradeLabel, timeStr, dateStr, correct) {
+  const text = `Sanskrit Quiz Result\n-------------------\nName: ${studentInfo.name}\nDate: ${dateStr}\nScore: ${pct}% (${correct}/50)\nGrade: ${grade} — ${gradeLabel}\nTime: ${timeStr}`;
+  navigator.clipboard.writeText(text).then(() => alert('Result copied to clipboard!')).catch(() => alert('Could not copy. Please screenshot your result.'));
+}
+
+function submitToGoogleForm(pct, grade, gradeLabel, timeStr, dateStr, correct, wrong, skipped) {
+  const GOOGLE_FORM_URL = https://docs.google.com/forms/d/e/1FAIpQLSdCuwQ1bGP5nW2F5tLpgSPd3cVtLb3GVgnuZCwVR4yTDHlqBA/viewform?usp=pp_url&entry.1845838626=%22NAME_PLACEHOLDER%22&entry.53248355=%22SCORE_PLACEHOLDER%22&entry.199397380=%22GRADE_PLACEHOLDER%22&entry.614278695=%22CORRECT_PLACEHOLDER%22&entry.284124838=%22TIME_PLACEHOLDER%22&entry.1979489496=%22TIME_PLACEHOLDER%22;
+  if (GOOGLE_FORM_URL.startsWith('YOUR_')) {
+    alert('The teacher has not yet linked a Google Form.\n\nPlease use "Download Score Card" or "Copy Result Text" instead, and email it to your teacher.');
+    return;
+  }
+  const url = GOOGLE_FORM_URL
+    .replace('NAME_PLACEHOLDER', encodeURIComponent(studentInfo.name))
+    .replace('SCORE_PLACEHOLDER', encodeURIComponent(pct + '%'))
+    .replace('GRADE_PLACEHOLDER', encodeURIComponent(grade + ' — ' + gradeLabel))
+    .replace('CORRECT_PLACEHOLDER', encodeURIComponent(correct + '/50'))
+    .replace('TIME_PLACEHOLDER', encodeURIComponent(timeStr))
+    .replace('DATE_PLACEHOLDER', encodeURIComponent(dateStr));
+  window.open(url, '_blank');
+}
+</script>
+</body>
+</html>
